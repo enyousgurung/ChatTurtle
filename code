@@ -1,0 +1,289 @@
+package turtlefinal;
+
+import java.awt.image.BufferedImage; //for BufferedImage
+
+import java.awt.Color;
+
+import java.io.File; //for File
+import javax.imageio.ImageIO; //for image
+
+import javax.swing.JOptionPane;
+
+
+import java.awt.FlowLayout;
+import javax.swing.JFrame;
+import uk.ac.leedsbeckett.oop.LBUGraphics;
+
+
+public class Main extends LBUGraphics
+{
+	private boolean isImageSaved = true;
+	private int lastForwardStep = 0;
+
+
+	
+        public static void main(String[] args)
+        {
+                new Main();
+        }
+
+        public Main()
+        {
+                JFrame MainFrame = new JFrame("ChatTurtle");                //create a frame to display the turtle panel on 
+                MainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Make sure the app exits when closed
+
+
+                
+                
+                MainFrame.add(this, java.awt.BorderLayout.CENTER);       // Add turtle panel                              
+                MainFrame.setLayout(new FlowLayout());  //not strictly necessary
+                MainFrame.add(this);                                    //"this" is this object that extends turtle graphics so we are adding a turtle graphics panel to the frame
+                MainFrame.pack();                                               //set the frame to a size we can see
+
+
+                MainFrame.setVisible(true);
+//                about();		//now display it
+                
+             
+                
+                                                                              
+        }
+
+
+        public void processCommand(String command)      //this method must be provided because LBUGraphics will call it when it's JTextField is used
+        {
+
+        	System.out.println("commandtypes was " +command); 
+        	
+        	switch(command)
+        	{
+        	
+        	case "about":
+        		about();
+        		displayMessage("successful!");
+        		break;
+        		
+        	case "pendown":
+        		setPenState(true);
+        		isImageSaved = false;
+        		displayMessage("pendown");
+        		break;
+        		
+        	case "penup":
+        		setPenState(false);
+        		isImageSaved = false;
+        		displayMessage("penup");
+        		break;
+        		
+        		
+        	case "left":
+        		left();
+        		isImageSaved = false;
+        		displayMessage("Turned left");
+        		break;
+        		
+        	case "left 90":
+        		left(90);
+        		isImageSaved = false;
+        		displayMessage("Turned 90° left");
+        		break;
+        		
+        	case "left 180":
+        		left(180);
+        		isImageSaved = false;
+        		displayMessage("Turned left by 180°");
+        		break;
+        		
+        	case "right":
+        		right();
+        		isImageSaved = false;
+        		displayMessage("Turned right");
+        		break;
+        		
+        	case "right 90":
+        		right(90);
+        		isImageSaved = false;
+        		displayMessage("Turned 90° right");
+        		break;
+        		
+        	case "red":
+                setPenColour(Color.RED);
+                displayMessage("Pen color set to RED");
+                break;
+                
+            case "blue":
+                setPenColour(Color.BLUE);
+                displayMessage("Pen color set to BLUE");
+                break;
+                
+            case "green":
+                setPenColour(Color.GREEN);
+                displayMessage("Pen color set to GREEN");
+                break;
+                
+            case "yellow":
+                setPenColour(Color.YELLOW);
+                displayMessage("Pen color set to yellow");
+                break;
+        		
+            case "clear":
+                if (!isImageSaved) {
+                    // Prompt the user with a warning if the image is not saved
+                    int response = JOptionPane.showConfirmDialog(
+                        null, 
+                        "You have unsaved changes. Do you want to clear without saving?", 
+                        "Unsaved Drawing", 
+                        JOptionPane.YES_NO_OPTION, 
+                        JOptionPane.WARNING_MESSAGE
+                    );
+
+                    // If the user chooses 'No', cancel the action
+                    if (response != JOptionPane.YES_OPTION) {
+                        displayMessage("Clear cancelled");
+                        break; // Exit the case and do nothing
+                    }
+                }
+
+                // Proceed to clear the drawing if the user accepted or if image is saved
+                clear();
+                isImageSaved = true; // Now the image is considered cleared (saved state)
+                displayMessage("Lines cleared");
+                break;
+        		
+        	case "dance":
+        		dance(2);
+        		isImageSaved = false;
+        		displayMessage("Danced");
+        		break;
+        		
+        	case "circle":
+        		circle(50);
+        		isImageSaved = false;
+        		displayMessage("Circle of radius 50 drawn");
+        		break;
+        		
+        	case "penwidth 5":
+        		setStroke(5);
+        		isImageSaved = false;
+        		displayMessage("penwidth is 5");
+        		break;
+        		
+        	case "reset":
+        		if (!isImageSaved) {
+        	        int response = JOptionPane.showConfirmDialog(null,
+        	            "You have unsaved changes. Do you want to reset without saving?",
+        	            "Unsaved Drawing",
+        	            JOptionPane.YES_NO_OPTION,
+        	            JOptionPane.WARNING_MESSAGE);
+
+        	        if (response != JOptionPane.YES_OPTION) {
+        	            displayMessage("Clear cancelled");
+        	            break; 
+        	        }
+        	    }
+        		reset();
+        		isImageSaved = true;
+        		displayMessage("Reset successful!");
+        		break;
+        		
+        		
+        		
+        	case "save":
+                saveDrawingToFile("drawing.png");
+                break;
+                
+        	case "load":
+        		if (!isImageSaved) {
+        	        int response = JOptionPane.showConfirmDialog(null,
+        	            "You have unsaved changes. Do you want to load without saving?",
+        	            "Unsaved Drawing",
+        	            JOptionPane.YES_NO_OPTION,
+        	            JOptionPane.WARNING_MESSAGE);
+
+        	        if (response != JOptionPane.YES_OPTION) {
+        	            displayMessage("Clear cancelled");
+        	            break; 
+        	        }
+        	    }
+                loadImage("drawing.png");
+                isImageSaved = false;
+                break;
+        		
+        	
+        	default:
+        		if (command.startsWith("forward")) {
+        		    String[] parts = command.trim().split(" ");
+        		    if (parts.length < 2) {
+        		        displayMessage("Missing parameter for 'forward'");
+        		    } else {
+        		        forward(parts[1]); // move forward
+        		        
+        		        try {
+        		            lastForwardStep = Integer.parseInt(parts[1]); // store step
+        		        } catch (NumberFormatException e) {
+        		            lastForwardStep = 0; // fallback
+        		        }
+
+        		        int x = getxPos();
+        		        int y = getyPos();
+
+        		        if (x < 0 || x > 500 || y < 0 || y > 500) {
+        		            displayMessage("Too far!");
+        		            reset();
+        		        }
+
+        		        displayMessage("moved forward");
+        		    }
+        		}
+
+        	    
+        		else if (command.equals("reverse")) {
+        		    if (lastForwardStep == 0) {
+        		        displayMessage("No previous forward step to reverse.");
+        		    } else {
+        		        forward("-" + lastForwardStep); // move backward
+        		        displayMessage("reversed " + lastForwardStep);
+        		    }
+        		}
+        		
+        		else {
+                    displayMessage("Invalid command: '" + command + "'");
+                }
+                break;
+        		
+        	}
+
+        	
+        	
+        	
+                
+        }
+        public void saveDrawingToFile(String filename) {
+            try {
+                BufferedImage image = getBufferedImage(); // drawing as image
+                File outputFile = new File("/Users/enyousgurung/Downloads/image.png");
+                ImageIO.write(image, "png", outputFile);
+                displayMessage("Saved as " + filename);
+            } catch (Exception e) {
+                displayMessage("Error saving: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        public void loadImage(String filename) {
+            try {
+                clear(); // clear current canvas
+                BufferedImage img = ImageIO.read(new File("/Users/enyousgurung/Downloads/image.png"));
+                if (img != null) {
+                    setBufferedImage(img); // set it as background
+                    repaint(); // Force a repaint to show the image
+                    displayMessage("Loaded image: " + filename);
+                } else {
+                    displayMessage("Image could not be loaded.");
+                }
+            } catch (Exception e) {
+                displayMessage("Failed to load image: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+}
